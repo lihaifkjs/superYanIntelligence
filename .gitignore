@@ -5,3 +5,26 @@ __pycache__/
 
 # 通知 token，禁止入库
 tools/notify.config.json
+tools/.notify.heartbeat
+tools/notify.log
+
+# 账号密码明文配置，禁止入库
+credentials.md
+
+# 模型权重与下载日志，禁止入库
+models/
+logs/
+
+# AutoDL 监控：会话 cookie 与日志，禁止入库
+tools/autodl_state.json
+tools/autodl_monitor.log
+tools/autodl_monitor.stop
+autodl_*.png
+autodl_market_text.txt
+
+# 数据集下载缓存与训练产物，不入库（可用脚本复现）
+data/hle/
+outputs/
+
+# 第三方 harness 仓库（以 commit hash 引用，不 vendor）
+external/
