@@ -1,6 +1,6 @@
 # PRD：多专家训练与 Model Merging 合版
 
-> 状态：v0.2（2026-10-23，4 专家方案经确认）
+> 状态：v0.3（2026-10-23，4 专家方案 + harness 选型已定，余 2 项待 W1 spike）
 > 题源：[`task.md`](task.md)（出处未标注）
 > 文档原则：只记录决策、契约、坑点与验证结论，不堆砌过程。
 
@@ -75,6 +75,10 @@
 | 项 | 决定 |
 |---|---|
 | HLE | HF 数据集直接评测，唯一无 Docker 的榜 |
+| SWE harness | 官方 harness 优先（分数可对照 leaderboard）；备选 mini-swe-agent（已实证可跑本模型 + 本地 vLLM）。注意其行为塑造效应（30s 命令超时）需与数据方案联动 |
+| Terminal-Bench harness | Harbor 官方（`harbor run`）+ 支持 OpenAI 端点的 agent；评模型前先跑 oracle 验证环境不 flake |
+| ASI-Bench harness | 仓库官方框架 + adapter；接不上时自写薄 adapter |
+| HLE 评测脚本 | 官方 eval 脚本（cais/hle 仓库）；逻辑简单可自写兜底 |
 | SWE-bench Pro v2-hard | agent harness + 断网沙箱；diff 导出干净镜像重判 |
 | ASI-Bench | 仓库 harness，agent + Docker 执行 |
 | Terminal-Bench | Harbor harness（`harbor run`），沙箱跑 agent |
@@ -93,7 +97,7 @@
 
 | 周 | 目标 | 出口标准 |
 |---|---|---|
-| W1 | 环境 + 架构适配 spike + Base baseline | LoRA merge smoke test 通过；Base 四榜分数落档 |
+| W1 | 环境 + 架构适配 spike + Base baseline | LoRA merge smoke test 通过；四榜 harness 链路打通（各 1～3 题出分）；Base 四榜分数落档 |
 | W2 | 数据构建 ×4 + 首个专家端到端 | 数据通过污染检测；SWE 专家小集评测 > Base |
 | W3 | 全部专家训练 + 合版矩阵 | 合版小集筛选出 1～2 个候选配置 |
 | W4 | 全量评测 + 分析 + 仓库整理 | 交付物齐套，可复现 |
@@ -133,3 +137,4 @@
 
 - v0.1（2026-10-23）：初版，汇总讨论结论。待定项：harness 选型、thinking 数据策略、LoRA 超参（W1 spike 定）。
 - v0.2（2026-10-23）：专家划分由 3 改为 4（与 benchmark 一一对应），同步更新数据方案、评测矩阵、里程碑与交付物清单。
+- v0.3（2026-10-23）：harness 选型落定（4.5 节），W1 出口标准补充"四榜 harness 链路打通"。待定项剩 2：thinking 数据策略、LoRA 超参。
