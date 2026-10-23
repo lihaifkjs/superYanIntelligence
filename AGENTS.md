@@ -6,7 +6,7 @@
 （有新的相关文档，补充在这里，并用一句话介绍文档内容）
 
 - [`task.md`](task.md)：赛题原文——基于 Qwen3.6-35B-A3B 训练四个 Benchmark（SWE-bench Pro v2-hard / HLE / ASI-Bench / Terminal-Bench）方向专家模型，探索 Model Merging 合版方法，目标宏平均较 Base 提升 3 个百分点。
-- [`PRD.md`](PRD.md)：实施方案——3 专家（SWE/HLE/Agentic）QLoRA 训练 + 合版对比（TIES/DARE 等）+ 四榜评测的完整决策、里程碑、成本与风险；待定项在 W1 spike 定。
+- [`PRD.md`](PRD.md)：实施方案——4 专家（每 benchmark 一个）QLoRA 训练 + 合版对比（TIES/DARE 等）+ 四榜评测的完整决策、里程碑、成本与风险；待定项在 W1 spike 定。
 
 ## 任务通知（必须照做）
 
