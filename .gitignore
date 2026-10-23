@@ -1,0 +1,7 @@
+.DS_Store
+.env
+__pycache__/
+*.pyc
+
+# 通知 token，禁止入库
+tools/notify.config.json
