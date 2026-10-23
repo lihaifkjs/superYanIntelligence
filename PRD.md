@@ -1,6 +1,6 @@
 # PRD：多专家训练与 Model Merging 合版
 
-> 状态：v0.3（2026-10-23，4 专家方案 + harness 选型已定，余 2 项待 W1 spike）
+> 状态：v0.4（2026-10-23，4 专家 + harness + thinking 分密度策略已定，剩 LoRA 超参待 spike）
 > 题源：[`task.md`](task.md)（出处未标注）
 > 文档原则：只记录决策、契约、坑点与验证结论，不堆砌过程。
 
@@ -18,6 +18,7 @@
 |---|---|---|
 | 专家划分 | **4 个**：SWE / HLE / ASI / Terminal，与 benchmark 一一对应 | 与题目字面"围绕四个 Benchmark"零偏差；各专家目标聚焦。专家数量本为开放设计项，此为最直白方案 |
 | 训练方式 | QLoRA SFT，挂在 instruct 模型上 | Base 为 post-trained 模型（见 4.1），续训是最自然的设定，也是 merging 文献标准玩法 |
+| thinking 策略 | 分密度：HLE / SWE / ASI 带完整 thinking，Terminal 按命令复杂度分档（短 thinking 或不带）；轨迹以自蒸馏为主 | 与评测形态（thinking on）一致防退化；自蒸馏每方向约十几元，成本可控；W1 用"全带 vs 分密度"对照验证收益 |
 | 合版方法 | 对比 ≥2 种：候选 TIES / DARE / Task Arithmetic；router 层处理作为配置变量 | 满足"比较 2 种方法"要求；MoE router 是否参与合并本身是现成对比素材 |
 | 评测策略 | 固定 harness + 推理配置，**先跑 Base baseline**，全量评测只跑一轮 | 无 baseline 则提升无据可依；小集验证先行，控制评测成本 |
 | 算力路线 | AutoDL 按小时租：A100 训练 / H100 评测；评测时 harness 与模型服务分离 | 训练便宜（MoE 仅 3B 激活）；评测是推理密集，H100 省时间反而省钱 |
@@ -49,7 +50,7 @@
 | Terminal | 终端操作任务 | 多轮 agent 轨迹（终端命令） | 3k～8k 条 | 终端操作、shell 任务类轨迹数据 |
 
 - **格式**：全部 chat 格式，工具调用 schema 对齐选定 harness
-- **thinking 处理**：待定（W1 spike 决定）——训练数据与评测形态（thinking on）需一致，否则合版后 thinking 退化难排查
+- **thinking 策略**：分密度（见决策表）——HLE / SWE / ASI 轨迹带完整 thinking，Terminal 按命令复杂度分档；轨迹来源以自蒸馏为主（Base 模型在 vLLM 上自生成，每方向约十几元），辅以现成开源 thinking 数据集；W1 用"全带 vs 分密度"对照实验验证收益，防合版后 thinking 退化难排查
 - **污染控制三动作（写进报告）**：① n-gram 重叠检测训练集×评测集；② SWE-bench 11 个源仓库黑名单；③ HLE 题目文本去重。报告给出检测方法与通过率
 
 ### 4.3 训练方案
@@ -138,3 +139,4 @@
 - v0.1（2026-10-23）：初版，汇总讨论结论。待定项：harness 选型、thinking 数据策略、LoRA 超参（W1 spike 定）。
 - v0.2（2026-10-23）：专家划分由 3 改为 4（与 benchmark 一一对应），同步更新数据方案、评测矩阵、里程碑与交付物清单。
 - v0.3（2026-10-23）：harness 选型落定（4.5 节），W1 出口标准补充"四榜 harness 链路打通"。待定项剩 2：thinking 数据策略、LoRA 超参。
+- v0.4（2026-10-23）：thinking 策略定为"分密度 + 自蒸馏为主"（决策表 + 4.2 节），W1 增加"全带 vs 分密度"对照实验。待定项剩 1：LoRA 超参。
