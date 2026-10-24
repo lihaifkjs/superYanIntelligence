@@ -24,23 +24,21 @@
 - fp16 模型源全程保留在磁盘，训练/评测直接从 `/root/autodl-tmp/q36` 加载
 - `prepare_model_for_kbit_training` 在 bf16 模式禁用（会把全参数 cast fp32 导致 OOM），改手动冻结+梯度检查点
 
-## 待办（恢复后顺序）
-
-1. **重装 vLLM**：关机时 pip 停在 torch 2.13 下载阶段（环境未损坏，torch 2.8.0 完好）
-   `pip install vllm==0.32.0`（会升级 torch 2.13，训练环境需快速复验）
-2. **vLLM 起服务**：`vllm serve /root/autodl-tmp/q36 --served-model-name qwen35b --max-model-len 16384 --gpu-memory-utilization 0.97 --enforce-eager --port 8000`
-   - 悬念：vllm 0.32 是否支持 qwen3_5_moe 架构；67GB 权重挤 80G 卡
-   - 备选：transformers 直跑（慢但稳）
-3. **HLE baseline**：`/root/hle_baseline.py --parquet /root/autodl-tmp/hle/datasets/caiss--hle/snapshots/master/data/test-00000-of-00001.parquet --n 10` 先冒烟再全量
-4. 训练冒烟复验（torch 2.13 后）：重跑 13 步确认
-5. 自蒸馏数据生成（四方向）→ W2 正式训练
-
 ## 环境备忘
 
 - 云机 Python：`/root/miniconda3/bin/python`（3.12），pip 镜像已配阿里云
-- 已装：transformers 5.20.2 / peft 0.21.2 / trl 1.16.0 / bitsandbytes 0.50.2 / accelerate 1.15.0 / modelscope 1.40.2 / datasets 5.1.0
+- 已装：**vllm 0.32.0 + torch 2.13.0+cu130**（2026-10-24 无卡模式装好，训练栈 transformers/peft/trl 验证兼容）；另 modelscope 1.40.2 / datasets 5.1.0 / peft 0.21.2 / accelerate 1.15.0 / trl 1.16.0
+- 注意：`vllm --version` 报 device 错误是无卡模式的正常现象（无 GPU），不影响有卡模式使用
 - 线性注意力在跑 PyTorch 参考内核（慢 2-5 倍），`causal-conv1d` 源码编译慢已弃，可再试 `flash-linear-attention` 提速
 - SSH 走 IP 直连（域名 getaddrinfo 失败）：`--host 36.137.238.251`；AutoDL 有连接限流，命令间隔 ≥1 分钟
+
+## 待办（恢复后顺序）
+
+1. ~~重装 vLLM~~ ✅ 已完成（无卡模式装好，关机不丢，装系统盘）
+2. **GPU 模式开机 → 补模型**：重跑 /root/scripts/download_model.py（自动跳过 tmp 幸存的 6 个分片，补 shm 的 ~50GB，约 30 分钟；无卡模式 shm 仅 2GB，必须等有卡模式）
+3. **vLLM 起服务**：`vllm serve /root/autodl-tmp/q36 --served-model-name qwen35b --max-model-len 16384 --gpu-memory-utilization 0.97 --enforce-eager --port 8000`（悬念：qwen3_5_moe 架构支持、67GB 挤 80G；备选 transformers 直跑）
+4. **HLE baseline**：`/root/hle_baseline.py --parquet /root/autodl-tmp/hle/datasets/caiss--hle/snapshots/master/data/test-00000-of-00001.parquet --n 10` 冒烟后全量
+5. 训练冒烟复验（torch 2.13 后可选）→ 自蒸馏数据生成（四方向）→ W2 正式训练
 
 ## 未解：HF 真 token
 
