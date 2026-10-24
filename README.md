@@ -10,7 +10,7 @@
 | [`PRD.md`](PRD.md) | 实施方案：关键决策、数据/训练/合版/评测方案、里程碑、风险 |
 | [`AGENTS.md`](AGENTS.md) | Agent 工作规约与文档地图 |
 | [`scripts/`](scripts/README.md) | 全流程脚本：种子→蒸馏→过滤→训练→合并→评测 |
-| [`scripts/cloud/`](scripts/cloud/run_all.sh) | 云上 runbook：租机后 `setup_env.sh` → `run_all.sh` |
+| [`scripts/cloud/`](docs/cloud-w2-runbook.md) | 云上操作：W1/W2 Runbook + `w1_*.sh` / `w2_pipeline.sh` 可执行脚本 |
 | [`docs/w1-progress.md`](docs/w1-progress.md) | W1：3B pipeline 打通记录 |
 | [`docs/w2-progress.md`](docs/w2-progress.md) | W2：本机 3B 全链路预演 + 质量阀加固 + 评审修复记录 |
 | [`docs/cloud-verify-checklist.md`](docs/cloud-verify-checklist.md) | 上云首验清单（含蒸馏格式第 0 步） |
@@ -35,8 +35,7 @@ python tests/run_tests.py
 ## 上云（A100/H100 80G + 35B）
 
 1. 按 [`docs/cloud-verify-checklist.md`](docs/cloud-verify-checklist.md) 完成首验（**第 0.5 步：蒸馏格式验证不可跳过**）
-2. `bash scripts/cloud/setup_env.sh`
-3. `bash scripts/cloud/run_all.sh`（CONFIG 区已默认 35B；每步 `--skip-xxx` 可控）
+2. 按 [`docs/cloud-w2-runbook.md`](docs/cloud-w2-runbook.md) 执行；一键流水线：`cd /root/syi && SCALE=full bash scripts/cloud/w2_pipeline.sh`（smoke 档默认；每步 `--skip-xxx` 可控）
 
 ## 当前状态
 

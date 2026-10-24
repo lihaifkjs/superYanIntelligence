@@ -27,7 +27,7 @@
 
 W2 正式交付（数据×4 + 首个专家端到端）依赖 35B 自蒸馏与 Docker harness，本机做不了。
 本轮把 W2/W3 的**整条机制链路**用 3B 在本机全部跑通，所有脚本 `--model` 参数化，
-上云后改模型路径即可执行（`scripts/cloud/run_all.sh`），不浪费计费时长。
+上云后按 `docs/cloud-w2-runbook.md` 执行（`scripts/cloud/w2_pipeline.sh`），不浪费计费时长。
 
 ## 本机验证结果（3B，Qwen2.5-3B-Instruct，4070Ti 12G）
 
@@ -52,7 +52,7 @@ W2 正式交付（数据×4 + 首个专家端到端）依赖 35B 自蒸馏与 Do
 - `prepare_swe_asi.py` — 开源轨迹数据集格式适配
 - `merge_experts.py` — TA / TIES 流式合并，`--freeze_router` 预留 MoE router 处理；`--self-test` 合成小矩阵手算验证
 - `check_contamination.py` — n-gram 重叠检测（jsonl/parquet 评测集）
-- `cloud/setup_env.sh` / `cloud/run_all.sh` — 云上环境准备与主流水线（每步可 skip）
+- `cloud/setup_env.sh` / `cloud/w2_pipeline.sh` — 云上环境准备与 W2 主流水线（SCALE=smoke/full；10-23 的 run_all.sh 已被本脚本取代删除）
 
 ## 踩坑与修复
 
@@ -65,7 +65,7 @@ W2 正式交付（数据×4 + 首个专家端到端）依赖 35B 自蒸馏与 Do
 
 ## 上云待办（按序）
 
-1. 租 A100 80G → `setup_env.sh` → `run_all.sh`（CONFIG 区已默认 35B repo id）
+1. GPU 模式开机 → W1 补模型（cloud-w1-runbook）→ `docs/cloud-w2-runbook.md` 全流程（`w2_pipeline.sh`，云机路径已固化）
 2. `distill.py` 换 35B 路径：3B 非 thinking 模型靠 prompt 包裹 `<think>`，35B 默认 thinking 模式会自然生成，prompt 兼容
 3. SWE/ASI 真实规模轨迹生成需 Docker 执行环境（本机只验格式）
 4. Terminal-Bench / SWE-bench Pro / ASI-Bench harness 锁 tag 拉取，补进 `setup_env.sh` 注释位

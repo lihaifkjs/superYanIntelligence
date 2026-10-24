@@ -45,7 +45,8 @@ python eval_simple.py --model outputs/merged-ta
 
 ## 云上
 
-见 `cloud/setup_env.sh`（环境准备）与 `cloud/run_all.sh`（主流水线，每步 `--skip-xxx`）。
+见 `../docs/cloud-w2-runbook.md`（W2 操作 Runbook）与 `cloud/w2_pipeline.sh`（一键流水线，
+`SCALE=smoke/full`，每步 `--skip-xxx`）；`cloud/setup_env.sh` 为环境准备。
 进展与验证结论见 `../docs/w2-progress.md`。
 
 ## 目录约定
