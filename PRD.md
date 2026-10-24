@@ -1,6 +1,6 @@
 # PRD：多专家训练与 Model Merging 合版
 
-> 状态：v0.5（2026-10-23，W2 本机 3B 预演路径已验证，云上 35B runbook 就绪）
+> 状态：v0.6（2026-10-24，实现对齐：adapter 直算合并 / bf16 训练默认 / 模块拆分与测试入仓）
 > 题源：[`task.md`](task.md)（出处未标注）
 > 文档原则：只记录决策、契约、坑点与验证结论，不堆砌过程。
 
@@ -55,14 +55,14 @@
 
 ### 4.3 训练方案
 
-- QLoRA：4-bit 底座约 20GB 显存，A100 80G 单卡可训；r / target modules / lr 以 W1 spike 结果为准（混合架构的注意力层命名需适配）
+- QLoRA 挂 instruct 底座。加载方式按机型二选一：80G 云卡默认 **bf16 全精度 + 手动冻结**（bnb 不量化 MoE experts，4bit 无收益且 kbit 预处理会把参数 cast fp32 导致 OOM）；低显存机器 `--load-in-4bit` 回退 QLoRA。r / target modules / lr 以 W1 spike 结果为准（混合架构注意力层命名需适配）
 - 序列 packing 消除 padding 浪费；agent 轨迹做长度截断/筛轮
 - 节奏：每专家先 300～500 条冒烟（约 1 小时），确认 loss 与评测有动静再放量
 - 预算：单专家 2 epoch × 30M token ≈ 2 小时 ≈ 4 元；四专家合计 10 小时内
 
 ### 4.4 合版方案
 
-- 流程：各专家 LoRA 合入底座得到独立权重 → 计算相对 Base 的 task vector → 方法对比合并（4 个 task vector 同时合并，干扰源多于文献常见的 2～3 任务场景，去噪剪枝方法的预期收益更大，这本身是重点验证假设）
+- 流程：各专家 LoRA adapter **直接**参与合并（delta = α/r·B@A 逐 tensor 流式计算，无需先合入底座，35B 省 70G+ 内存；`scripts/merge_experts.py`）→ 相对 Base 的 task vector → 方法对比合并（4 个 task vector 同时合并，干扰源多于文献常见的 2～3 任务场景，去噪剪枝方法的预期收益更大，这本身是重点验证假设）
 - 对比矩阵（≥2 种方法 × router 参与/冻结）：
   | 方法 | 说明 |
   |---|---|
@@ -136,3 +136,4 @@
 - v0.3（2026-10-23）：harness 选型落定（4.5 节），W1 出口标准补充"四榜 harness 链路打通"。待定项剩 2：thinking 数据策略、LoRA 超参。
 - v0.4（2026-10-23）：thinking 策略定为"分密度 + 自蒸馏为主"（决策表 + 4.2 节），W1 增加"全带 vs 分密度"对照实验。待定项剩 1：LoRA 超参。
 - v0.5（2026-10-23）：W2 增加本机 3B 预演阶段——自蒸馏先 3B 后 35B（脚本 `--model` 参数化，逻辑相同仅换路径）；Terminal 轨迹自蒸馏用 Git Bash 沙箱替代 Docker（smoke 级）；SWE/ASI 本机只做开源轨迹格式适配，真实生成留云；新增多专家合并脚本（TA/TIES，流式，router 冻结开关）与云上 runbook（`scripts/cloud/`）。详见 `docs/w2-progress.md`。
+- v0.6（2026-10-24）：实现对齐 + 评审修复。①训练默认改 bf16 全精度（`--load-in-4bit` 回退），合版改为 adapter 直算 task vector；②`pipeline_common` 拆为 prompts/judge/llm_io/io_utils（build_sft 不再拖 torch），Terminal 种子库拆为 `seed_bank.py`，HLE 判分统一走 `judge.answers_equal`（数据过滤与评测同尺）；③修复评审发现的 5 个真 bug：freeze_router 丢权重、合并产物 fp32 混存、qa 批解码抹 thinking、LoRA key 前缀硬编码无断言（**该断言 retroactively 发现 10-23 的合并产物实为 base 拷贝**，已修复重跑）、train_lora 默认参数云上必失败；④`tests/run_tests.py` 入仓（判分/解析/合并数学 26 项）。

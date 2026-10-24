@@ -13,6 +13,32 @@ ls /root/autodl-fs            # 确认网盘挂载（模型放这不占配额）
 
 **失败备选**：无网盘 → 用 `python -c "from modelscope import snapshot_download; snapshot_download('Qwen/Qwen3.6-35B-A3B', cache_dir='/root/autodl-fs')"` 云内直下（云带宽快）。
 
+## 0.5 蒸馏输出格式首验（第 0 步，5 分钟，不可跳过）
+
+Qwen3.6 是原生 thinking 模型，其输出格式/特殊 token 与本机 3B 假设可能不一致——
+解析器接不住会整批丢 reasoning。**放量蒸馏前必须先跑这 5 条并人工看输出**：
+
+```bash
+python - <<'EOF'
+import sys; sys.path.insert(0, 'scripts')
+from pipeline_common import (
+    SYSTEM_PROMPT_QA, generate, load_model_and_tokenizer, parse_qa_output,
+)
+model, tok = load_model_and_tokenizer('Qwen/Qwen3.6-35B-A3B')
+msgs = [{"role": "system", "content": SYSTEM_PROMPT_QA},
+        {"role": "user", "content": "What is 17 + 25?"}]
+raw = generate(msgs, model, tok, max_new_tokens=512)
+print("===== RAW ====="); print(raw)
+parsed = parse_qa_output(raw)
+print("===== PARSED =====")
+print("reasoning_len:", len(parsed["reasoning"]), "| answer:", parsed["answer"])
+EOF
+```
+
+- **成功**：RAW 全文打印出来，PARSED 的 reasoning_len > 0 且 answer 非空
+- **看什么**：RAW 里 thinking 用什么标记（裸文本 / `<think>` / 特殊 token）、ANSWER 行是否照做
+- **失败处理**：reasoning_len = 0 → 看 RAW 实际格式，改 `parse_qa_output`/`_DECODE_STRIP` 后重验；确认前不得启动全量蒸馏
+
 ## 1. bnb 4-bit 加载 35B（核心风险，5 分钟）
 
 ```bash

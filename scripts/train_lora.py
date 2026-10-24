@@ -11,14 +11,16 @@ from transformers import (
 )
 from trl import SFTTrainer
 
-from pipeline_common import TOOLS
+from llm_io import DEFAULT_MODEL, resolve_model_path
+from prompts import TOOLS
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="Qwen/Qwen2.5-3B-Instruct")
-    parser.add_argument("--data", default="data/hle_smoke.jsonl")
-    parser.add_argument("--output", default="outputs/lora-hle-smoke")
+    parser.add_argument("--model", default=DEFAULT_MODEL,
+                        help="本地路径或 ModelScope repo id（自动下载）")
+    parser.add_argument("--data", default="data/sft/hle.jsonl")
+    parser.add_argument("--output", default="outputs/lora-hle")
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--gradient_accumulation_steps", type=int, default=4)
@@ -49,11 +51,12 @@ def main():
         kwargs["torch_dtype"] = "bfloat16"
 
     print(f"Loading model: {args.model} (4bit={args.load_in_4bit})", flush=True)
+    model_path = resolve_model_path(args.model)
     model = AutoModelForCausalLM.from_pretrained(
-        args.model,
+        model_path,
         **kwargs,
     )
-    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
 

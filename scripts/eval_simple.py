@@ -43,7 +43,8 @@ def main():
             temperature=0.7,
             top_p=0.9,
         )
-        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        response = tokenizer.decode(outputs[0][inputs["input_ids"].shape[1]:],
+                                    skip_special_tokens=True)
         print(f"\nQ: {q}")
         print(f"A: {response}")
 

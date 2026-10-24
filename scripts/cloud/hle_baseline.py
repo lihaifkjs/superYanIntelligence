@@ -12,10 +12,14 @@
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 
 import pandas as pd
 import requests
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from judge import answers_equal  # noqa: E402  与数据过滤同一把尺子
 
 # 与官方 hle_eval/run_model_predictions.py 一致
 SYSTEM_PROMPT = (
@@ -82,14 +86,13 @@ def main():
             print(f"[{i}] ERROR: {e}", flush=True)
             continue
         ext = extract_answer(resp, row.answer_type)
-        ok = (
-            ext is not None
-            and (
-                ext.upper() == str(row.answer).strip().upper()
-                if row.answer_type == "multipleChoice"
-                else ext.strip().lower() == str(row.answer).strip().lower()
-            )
-        )
+        if ext is None:
+            ok = False
+        elif row.answer_type == "multipleChoice":
+            ok = ext.upper() == str(row.answer).strip().upper()
+        else:
+            # exactMatch：与数据过滤同口径（judge.answers_equal）
+            ok = answers_equal(ext, str(row.answer))
         correct += ok
         results.append({
             "id": row.id, "answer_type": row.answer_type,

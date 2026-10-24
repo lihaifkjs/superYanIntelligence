@@ -10,10 +10,15 @@ strong judge model; this script validates the full scoring link locally.
 
 import argparse
 import re
+import sys
+from pathlib import Path
 
 import pandas as pd
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from judge import answers_equal  # noqa: E402  与数据过滤同一把尺子
 
 # Identical to external/hle/hle_eval/run_model_predictions.py
 SYSTEM_PROMPT = (
@@ -68,7 +73,8 @@ def is_correct(extracted, gold, answer_type):
         return False
     if answer_type == "multipleChoice":
         return extracted.upper() == gold.strip().upper()
-    return extracted.strip().lower() == gold.strip().lower()
+    # exactMatch：与数据过滤同口径（judge.answers_equal，含 LaTeX/数值等价）
+    return answers_equal(extracted, gold)
 
 
 def main():

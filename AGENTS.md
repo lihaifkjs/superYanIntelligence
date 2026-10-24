@@ -6,6 +6,7 @@
 （有新的相关文档，补充在这里，并用一句话介绍文档内容）
 
 - [`task.md`](task.md)：赛题原文——基于 Qwen3.6-35B-A3B 训练四个 Benchmark（SWE-bench Pro v2-hard / HLE / ASI-Bench / Terminal-Bench）方向专家模型，探索 Model Merging 合版方法，目标宏平均较 Base 提升 3 个百分点。
+- [`README.md`](README.md)：仓库门面——地图、本机/云上 quickstart、当前状态；交付物要求的根 README。
 - [`PRD.md`](PRD.md)：实施方案——4 专家（每 benchmark 一个）QLoRA 训练 + 合版对比（TIES/DARE 等）+ 四榜评测的完整决策、里程碑、成本与风险；待定项在 W1 spike 定。
 - [`docs/w1-progress.md`](docs/w1-progress.md)：W1 进展——本地 3B QLoRA pipeline 跑通记录、踩坑修复（trl API / ModelScope 镜像 / Windows 编码）、剩余缺口与下一步选项。
 - [`docs/w2-progress.md`](docs/w2-progress.md)：W2 本机 3B 预演——全链路（种子→蒸馏→过滤→训练→TA/TIES 合并）10/10 验证通过、新脚本清单、上云待办。
