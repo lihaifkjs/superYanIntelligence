@@ -12,9 +12,8 @@
 - [`docs/w2-progress.md`](docs/w2-progress.md)：W2 本机 3B 预演——全链路（种子→蒸馏→过滤→训练→TA/TIES 合并）10/10 验证通过、新脚本清单、上云待办。
 - [`docs/gpu-rental-notes.md`](docs/gpu-rental-notes.md)：云 GPU 租用踩坑——2026-10-23 AutoDL/优云智算/阿里云 DSW 实况、80G 显存红线、租赁时段规律与价格锚点。
 - [`docs/spike-35b-arch.md`](docs/spike-35b-arch.md)：W1 架构 spike 结论——Qwen3.6-35B-A3B 混合架构 LoRA 挂载方案、MoE 专家/Router 处理、待上云验证项。
-- [`docs/cloud-verify-checklist.md`](docs/cloud-verify-checklist.md)：上云首验清单——租机后 30–60 分钟的关键验证步骤、成功标准与备选方案（4bit 量化/vLLM/训练冒烟）。
-- [`docs/cloud-session-state.md`](docs/cloud-session-state.md)：云机会话快照（2026-10-24 暂停点）——已验证项、bnb 对 MoE experts 无效的修正决策、恢复步骤与待办顺序。
 - [`docs/cloud-w1-runbook.md`](docs/cloud-w1-runbook.md)：W1 云机操作 Runbook（交接独立云 agent）——输入清单、做什么/不做什么、分 Phase 命令与验收、坑点速查、W1 出口对照，配 scripts/cloud/w1_*.sh。
+- [`docs/cloud-w2-runbook.md`](docs/cloud-w2-runbook.md)：W2 云机操作 Runbook——第 0 步蒸馏格式验证、35B 自蒸馏×4 + HLE 专家端到端的分 Phase 命令与验收、W2 特有风险坑点，配 scripts/cloud/w2_pipeline.sh（SCALE=smoke/full）。
 - [`docs/cloud-ops-log.md`](docs/cloud-ops-log.md)：云机操作台账——003 机已执行操作的时间线记录（含是否需重做标记）、重启失效清单、追加模板，防止跨 agent 重复劳动。
 
 ## 任务通知（必须照做）

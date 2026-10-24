@@ -13,6 +13,14 @@
 | SSH | 见 credentials.md；直连 IP `36.137.238.251` 端口 32375（重启后可能变，以控制台为准） |
 | 计费 | 按量 ¥5.59/时（无卡模式 ~¥0.1/时，shm 仅 2GB） |
 
+## 关键决策（2026-10-24，源自已归档的 session-state，长期有效）
+
+- ~~4bit 量化省磁盘~~ → **废弃**：routed experts（32B/35B 参数）是批量参数非 Linear，bnb 量化不到，省 1.3GB 无意义
+- **改为 bf16 全精度训练**：显存 67GB 模型 + 余量 OK；只存 LoRA adapter（42MB/个），50GB 盘够用
+- fp16 模型源全程保留在磁盘，训练/评测直接从 `/root/autodl-tmp/q36` 加载
+- `prepare_model_for_kbit_training` 在 bf16 模式禁用（会把全参数 cast fp32 导致 OOM），train_lora.py 已改手动冻结+梯度检查点，**勿回退**
+- 待验证遗留：bnb 4bit 在 GatedDeltaNet 的兼容性已随量化路线一并放弃，无需再验
+
 ## 重启失效清单（每次开机必查）
 
 | 资产 | 位置 | 关机后 |
