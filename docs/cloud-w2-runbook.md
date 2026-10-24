@@ -1,7 +1,7 @@
 # W2 云机操作 Runbook（交接文档）
 
 > 面向：独立云操作 agent。目标：35B 自蒸馏数据构建 ×4 + 首个专家（HLE）端到端训练与小集评测出分。
-> 前置阅读：`docs/cloud-session-state.md`（机器状态）、`docs/cloud-w1-runbook.md`（W1 未完成项是本文前置）、`docs/cloud-verify-checklist.md`（含第 0.5 步）。
+> 前置阅读：`docs/cloud-ops-log.md`（机器状态/关键决策/重启失效清单）、`docs/cloud-w1-runbook.md`（W1 未完成项是本文前置）。第 0 步格式验证的落地脚本即 `scripts/cloud/w2_step0_format_check.py`（本文 Phase 0）。
 > 机制全部在本机 3B 验证过（`docs/w2-progress.md`）；本文只解决"35B + 云环境"的差异。
 
 ## 0. 输入清单（开始前必须齐备）
@@ -108,7 +108,7 @@ ps aux | grep 'vllm serve' | grep -v grep | awk '{print $2}' | xargs -r kill  # 
 **验收**：`train_loss` 有限下降（<2 起步、尾值 <0.8 期望）；显存峰值 <79GB；`LoRA adapter saved`。
 **坑**：
 
-- `--load-in-4bit` **不要加**：bnb 量化不到 MoE routed experts，且 kbit 预处理会把全参数 cast fp32 直接 OOM（决策已废弃，见 cloud-session-state）
+- `--load-in-4bit` **不要加**：bnb 量化不到 MoE routed experts，且 kbit 预处理会把全参数 cast fp32 直接 OOM（决策已废弃，见 cloud-ops-log.md 关键决策节）
 - target_modules 用上面全量列表（spike 结论，含线性注意力 in_proj_*）；漏挂 `in_proj_*` 等于线性注意力层白训
 - 中断直接重跑，checkpoint 按 epoch 存
 

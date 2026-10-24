@@ -13,7 +13,8 @@
 | [`scripts/cloud/`](docs/cloud-w2-runbook.md) | 云上操作：W1/W2 Runbook + `w1_*.sh` / `w2_pipeline.sh` 可执行脚本 |
 | [`docs/w1-progress.md`](docs/w1-progress.md) | W1：3B pipeline 打通记录 |
 | [`docs/w2-progress.md`](docs/w2-progress.md) | W2：本机 3B 全链路预演 + 质量阀加固 + 评审修复记录 |
-| [`docs/cloud-verify-checklist.md`](docs/cloud-verify-checklist.md) | 上云首验清单（含蒸馏格式第 0 步） |
+| [`docs/cloud-ops-log.md`](docs/cloud-ops-log.md) | 云机操作台账——机器档案、关键决策、重启失效清单、操作时间线 |
+| [`docs/cloud-w1-runbook.md`](docs/cloud-w1-runbook.md) / [`docs/cloud-w2-runbook.md`](docs/cloud-w2-runbook.md) | 云机 W1/W2 操作 Runbook（交接独立云 agent，含可执行脚本） |
 | [`docs/spike-35b-arch.md`](docs/spike-35b-arch.md) | 35B 混合架构 LoRA 挂载 spike 结论 |
 | [`docs/gpu-rental-notes.md`](docs/gpu-rental-notes.md) | 云 GPU 租用踩坑 |
 | [`tests/run_tests.py`](tests/run_tests.py) | 核心逻辑回归测试（`python tests/run_tests.py`） |
@@ -34,8 +35,8 @@ python tests/run_tests.py
 
 ## 上云（A100/H100 80G + 35B）
 
-1. 按 [`docs/cloud-verify-checklist.md`](docs/cloud-verify-checklist.md) 完成首验（**第 0.5 步：蒸馏格式验证不可跳过**）
-2. 按 [`docs/cloud-w2-runbook.md`](docs/cloud-w2-runbook.md) 执行；一键流水线：`cd /root/syi && SCALE=full bash scripts/cloud/w2_pipeline.sh`（smoke 档默认；每步 `--skip-xxx` 可控）
+1. 按 [`docs/cloud-ops-log.md`](docs/cloud-ops-log.md) 核对重启失效清单（模型分片在 shm，关机需重下）
+2. 按 [`docs/cloud-w2-runbook.md`](docs/cloud-w2-runbook.md) 执行；一键流水线：`cd /root/syi && SCALE=full bash scripts/cloud/w2_pipeline.sh`（smoke 档默认；每步 `--skip-xxx` 可控；**第 0 步蒸馏格式验证不可跳过**）
 
 ## 当前状态
 

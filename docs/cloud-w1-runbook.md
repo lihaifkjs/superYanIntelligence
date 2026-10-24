@@ -1,7 +1,7 @@
 # W1 云机操作 Runbook（交接文档）
 
 > 面向：独立云操作 agent。目标：完成 W1 剩余云侧工作，产出 Base 四榜分数落档。
-> 前置阅读：`docs/cloud-session-state.md`（当前机器状态）、`docs/spike-35b-arch.md`（架构结论）。
+> 前置阅读：`docs/cloud-ops-log.md`（当前机器状态/关键决策）、`docs/spike-35b-arch.md`（架构结论）。
 > 所有脚本在 git 仓库 `scripts/cloud/`，同名文件也在云机 `/root/scripts/` 或 `/root/`（若丢失按本文「输入」节补传）。
 
 ## 0. 输入清单（开始前必须齐备）
@@ -137,7 +137,7 @@ HLE 已通；**Terminal-Bench / ASI-Bench / SWE-bench 需要 Docker**，本 GPU 
 
 | PRD 出口标准 | 达成方式 |
 |---|---|
-| LoRA merge smoke test | ✅ 已验证（本地 3B 单专家 + 云机 35B 训练冒烟），见 cloud-session-state |
+| LoRA merge smoke test | ✅ 已验证（本地 3B 单专家 + 云机 35B 训练冒烟），见 cloud-ops-log.md 操作记录 |
 | 四榜 harness 链路打通（各 1-3 题出分） | HLE=本 Runbook Phase 3；其余=Phase 5 |
 | Base 四榜分数落档 | 每榜 ≥10 题级子集分数（带口径声明），HLE 可到 200 题 |
 
