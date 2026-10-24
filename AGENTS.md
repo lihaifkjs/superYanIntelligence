@@ -8,9 +8,11 @@
 - [`task.md`](task.md)：赛题原文——基于 Qwen3.6-35B-A3B 训练四个 Benchmark（SWE-bench Pro v2-hard / HLE / ASI-Bench / Terminal-Bench）方向专家模型，探索 Model Merging 合版方法，目标宏平均较 Base 提升 3 个百分点。
 - [`PRD.md`](PRD.md)：实施方案——4 专家（每 benchmark 一个）QLoRA 训练 + 合版对比（TIES/DARE 等）+ 四榜评测的完整决策、里程碑、成本与风险；待定项在 W1 spike 定。
 - [`docs/w1-progress.md`](docs/w1-progress.md)：W1 进展——本地 3B QLoRA pipeline 跑通记录、踩坑修复（trl API / ModelScope 镜像 / Windows 编码）、剩余缺口与下一步选项。
+- [`docs/w2-progress.md`](docs/w2-progress.md)：W2 本机 3B 预演——全链路（种子→蒸馏→过滤→训练→TA/TIES 合并）10/10 验证通过、新脚本清单、上云待办。
 - [`docs/gpu-rental-notes.md`](docs/gpu-rental-notes.md)：云 GPU 租用踩坑——2026-10-23 AutoDL/优云智算/阿里云 DSW 实况、80G 显存红线、租赁时段规律与价格锚点。
 - [`docs/spike-35b-arch.md`](docs/spike-35b-arch.md)：W1 架构 spike 结论——Qwen3.6-35B-A3B 混合架构 LoRA 挂载方案、MoE 专家/Router 处理、待上云验证项。
 - [`docs/cloud-verify-checklist.md`](docs/cloud-verify-checklist.md)：上云首验清单——租机后 30–60 分钟的关键验证步骤、成功标准与备选方案（4bit 量化/vLLM/训练冒烟）。
+- [`docs/cloud-session-state.md`](docs/cloud-session-state.md)：云机会话快照（2026-10-24 暂停点）——已验证项、bnb 对 MoE experts 无效的修正决策、恢复步骤与待办顺序。
 
 ## 任务通知（必须照做）
 

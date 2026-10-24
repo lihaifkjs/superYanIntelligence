@@ -1,51 +1,60 @@
-# 本地 Smoke Test
+# 流水线脚本
 
-用 `Qwen/Qwen2.5-3B-Instruct` 在本地 4070Ti 12G 上跑通「数据 → QLoRA 训练 → 合并 → 评测」的完整链路。
+全部脚本 `--model` 参数化：本机用 3B 本地路径，云上换 35B（repo id 或路径），逻辑不变。
+
+本机 3B 路径：`models/models/qwen--Qwen2.5-3B-Instruct/snapshots/master`
 
 ## 环境准备
 
 ```bash
-cd scripts
-pip install -r requirements.txt
+pip install -r requirements.txt   # 含 modelscope / safetensors
 ```
 
-## 运行步骤
-
-### 1. 生成 mock 数据
+## 主流程（W2 流水线）
 
 ```bash
-python prepare_hle_smoke.py --output ../data/hle_smoke.jsonl
+# 1. 种子数据：Terminal 内置 30 任务 + HLE 数学抽 300 题
+python prepare_seeds.py --expert all
+
+# 2. 自蒸馏（teacher=--model）
+python distill.py --mode qa    --seeds data/seeds/hle.jsonl      # HLE 批量问答
+python distill.py --mode agent --seeds data/seeds/terminal.jsonl # Terminal 沙箱 agent
+
+# 3. 过滤 + SFT 数据
+python build_sft.py --traj data/raw_traj/hle.jsonl
+python build_sft.py --traj data/raw_traj/terminal.jsonl
+python prepare_swe_asi.py --expert both --n 20   # SWE/ASI 开源轨迹格式适配
+
+# 4. 训练（Terminal 轨迹加 --tools）
+python train_lora.py --model <M> --data data/sft/hle.jsonl      --output outputs/lora-hle
+python train_lora.py --model <M> --data data/sft/terminal.jsonl --output outputs/lora-terminal --tools
+
+# 5. 多专家合并（adapter 直接参与，TA / TIES）
+python merge_experts.py --base <M> --experts outputs/lora-{hle,terminal,swe,asi}/final \
+    --method task_arithmetic --output outputs/merged-ta
+python merge_experts.py --base <M> --experts outputs/lora-{hle,terminal,swe,asi}/final \
+    --method ties --density 0.2 --output outputs/merged-ties
+python merge_experts.py --self-test   # 合并数学逻辑单测
+
+# 6. 污染检测
+python check_contamination.py --train data/sft/hle.jsonl --eval <评测集 parquet/jsonl>
+
+# 7. 冒烟评测
+python eval_simple.py --model outputs/merged-ta
 ```
 
-### 2. QLoRA 训练
+## 云上
 
-```bash
-python train_lora.py \
-  --model Qwen/Qwen2.5-3B-Instruct \
-  --data ../data/hle_smoke.jsonl \
-  --output ../outputs/lora-hle-smoke \
-  --epochs 1 \
-  --batch_size 1 \
-  --gradient_accumulation_steps 4
-```
+见 `cloud/setup_env.sh`（环境准备）与 `cloud/run_all.sh`（主流水线，每步 `--skip-xxx`）。
+进展与验证结论见 `../docs/w2-progress.md`。
 
-### 3. 合并 LoRA
+## 目录约定
 
-```bash
-python merge_lora.py \
-  --model Qwen/Qwen2.5-3B-Instruct \
-  --adapter ../outputs/lora-hle-smoke/final \
-  --output ../outputs/merged-hle-smoke
-```
+- `data/seeds/` 种子任务，`data/raw_traj/` 原始轨迹（断点续跑），`data/sft/` 训练数据
+- `data/swe_asi_sample/` SWE/ASI 格式样本
+- `outputs/sandbox/` Terminal 沙箱工作目录
+- `outputs/lora-*` adapter，`outputs/merged-*` 合并权重（含 merge_config.json 证据链）
 
-### 4. 简单评测
+## W1 遗留脚本
 
-```bash
-python eval_simple.py --model ../outputs/merged-hle-smoke
-```
-
-## 预期结果
-
-- 训练能在 4070Ti 12G 上跑完，显存占用约 8–10G
-- 合并后的模型能加载并回答 5 道测试题
-- 输出中应包含 `<think>...</think>` 形式的推理过程
+`prepare_hle_smoke.py` / `merge_lora.py`（单专家合并）为 W1 mock 链路产物，已被上方流程覆盖，保留作参考。
