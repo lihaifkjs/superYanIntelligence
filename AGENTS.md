@@ -14,6 +14,7 @@
 - [`docs/spike-35b-arch.md`](docs/spike-35b-arch.md)：W1 架构 spike 结论——Qwen3.6-35B-A3B 混合架构 LoRA 挂载方案、MoE 专家/Router 处理、待上云验证项。
 - [`docs/cloud-verify-checklist.md`](docs/cloud-verify-checklist.md)：上云首验清单——租机后 30–60 分钟的关键验证步骤、成功标准与备选方案（4bit 量化/vLLM/训练冒烟）。
 - [`docs/cloud-session-state.md`](docs/cloud-session-state.md)：云机会话快照（2026-10-24 暂停点）——已验证项、bnb 对 MoE experts 无效的修正决策、恢复步骤与待办顺序。
+- [`docs/cloud-w1-runbook.md`](docs/cloud-w1-runbook.md)：W1 云机操作 Runbook（交接独立云 agent）——输入清单、做什么/不做什么、分 Phase 命令与验收、坑点速查、W1 出口对照，配 scripts/cloud/w1_*.sh。
 
 ## 任务通知（必须照做）
 
