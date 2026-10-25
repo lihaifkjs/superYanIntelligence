@@ -67,6 +67,16 @@
 16. **工具调用格式结论** — Qwen3.6-35B base 原生工具格式是 **Qwen XML 风格**（`<function=名><parameter=参数>`），vLLM 需 `--tool-call-parser qwen3_xml`（hermes 解析不出）；探针验证可结构化。W2 训练数据格式须对齐。
 17. **隧道运维教训** — Windows 上 SO_REUSEADDR 允许双绑：隧道自动重连会产生「僵尸监听+新监听」并存，一半连接空响应；排障先 `netstat | grep 8000` 确认单实例。隧道脚本已加 SSH keepalive。
 
+### 2026-10-25（晚，GPU 模式，W2 smoke）
+
+18. **W2 云上 smoke 首轮（结论：机制全通，格式协议是瓶颈，放量前必须做吞吐优化）**
+    - Phase 0 格式验证 ✅：35B 蒸馏输出 think 标签 + `ANSWER:` 行照做（人工目检 RAW 通过）
+    - **坑**：git 仓库 clone 带下 3B 预演时代的 raw_traj（commit `ecb9ef2` 误提交数据）→ 断点续跑直接跳过 = 差点混入 3B 轨迹。**云机 clone 后必先清 `data/raw_traj/`**（已备份至 `/root/autodl-tmp/raw_traj_3b_backup/`）
+    - HLE qa 冒烟 30 题：通过率 10% → 46.7% → **50.0%**（三轮修复：①`parse_qa_output` 改全文扫描+跳过 `<final answer>` 占位符回声——模型把答案写进 think 计划区，旧逻辑只扫 think 外；②`--max_new_tokens` 768→3072——35B 规划冗长，768 在 ANSWER 行前截断（3B 默认值不适用）；③`normalize_answer` 补纯数字括号对折叠 `-(1)/(2)`≡`-1/2` 和一元正号 `+infty`≡`infty`）。三 commit：`51dcaac`/`7b4d58e`
+    - Terminal agent 冒烟 3/10（主动停）：沙箱 **Docker 不可用降级 local**（PRD v0.5 已接受 Git Bash 级沙箱）；机制健康（T02 两轮完美走通规划→执行→验证→交卷），失败主因 = **模型对「只输出 JSON」协议服从不稳**，JSON 解析失败空转烧光 12 轮。通过率 1/3，n 太小不下结论
+    - **吞吐实测（放量优化的依据）**：qa batch 4 直跑 ~40s/题（3000 题≈33h≈¥185）；Terminal 串行 ~22 分/任务（330 任务≈120h≈¥670）——裸跑超 PRD 预算 10 倍。优化方向：qa batch→16、Terminal 多沙箱并行×8、max_turns 12→8、（可选）qa 切 vLLM 生成。优化后预估 ¥100-150
+    - 产物已拉回本地 `outputs/w2-smoke/`；云机 raw_traj/sft 数据在 `/root/syi/data/` 完好
+
 ### 当前状态（2026-10-24 晚，已关机待命）
 
 - ✅ 已完成：下载→加载→生成→训练冒烟→vLLM 环境→HLE 数据+脚本
