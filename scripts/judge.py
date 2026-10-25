@@ -21,26 +21,28 @@ def parse_qa_output(text: str) -> dict:
 
     格式不依赖 <think> 标签：35B 原生 thinking 可能用别的标记或裸输出，
     此时 ANSWER 行之前的全部文本都算 reasoning（SFT 侧再统一包装格式）。
+
+    扫描范围是全文（模型可能把 ANSWER 行写进 think 块内的计划区）；
+    跳过内容含 "final answer" 的占位符回声（模型复述格式指令产生的
+    "ANSWER: <final answer>" 不算答案）。
     """
     text = text.strip()
     m = THINK_RE.search(text)
-    if m:
-        reasoning = m.group(1).strip()
-        rest = THINK_RE.sub("", text).strip()
-    else:
-        reasoning = ""
-        rest = text
+    reasoning = m.group(1).strip() if m else ""
 
     am = None
-    for am in ANSWER_RE.finditer(rest):
-        pass  # 取最后一个 ANSWER: 行
+    for cand in ANSWER_RE.finditer(text):
+        if "final answer" in cand.group(1).lower():
+            continue
+        am = cand  # 取最后一个有效 ANSWER: 行
     if am:
         answer = am.group(1).strip()
         if not reasoning:
             # 无 think 标签：ANSWER 行之前的内容整体作为推理过程
-            reasoning = rest[:am.start()].strip()
+            reasoning = text[:am.start()].strip()
     else:
-        # 退化处理：最后一行当答案，其余当推理
+        # 退化处理：think 外（无 think 则全文）的最后一行当答案，其余当推理
+        rest = THINK_RE.sub("", text).strip() if m else text
         lines = [l for l in rest.splitlines() if l.strip()]
         answer = lines[-1].strip() if lines else ""
         if not reasoning:

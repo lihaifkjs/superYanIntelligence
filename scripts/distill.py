@@ -260,7 +260,8 @@ def main():
                         help="默认 data/raw_traj/{expert}.jsonl")
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--batch_size", type=int, default=8, help="qa 模式批大小")
-    parser.add_argument("--max_new_tokens", type=int, default=768)
+    parser.add_argument("--max_new_tokens", type=int, default=3072,
+                        help="35B 规划冗长，768 会在 ANSWER 行之前截断；3B 时代的小默认值仅适用本机预演")
     parser.add_argument("--max_turns", type=int, default=10, help="agent 模式轮数上限")
     parser.add_argument("--timeout", type=int, default=30, help="单条命令超时秒")
     parser.add_argument("--temperature", type=float, default=0.7)
