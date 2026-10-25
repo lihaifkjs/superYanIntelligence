@@ -38,7 +38,8 @@
 
 - 官方仓库：github.com/scaleapi/SWE-bench_Pro-os（Scale AI，V2 已公开，642 题 + HARD-51；V2 用 Harbor 协议）
 - 已验证：官方 ghcr 任务镜像可拉（3.6GB）、mini-swe-agent 2.4.6 容器沙箱跑通、**模型↔agent 工具调用已双向验证**（`qwen3_xml` 探针：`<function=bash><parameter=command>` 正确解析为结构化 tool_calls）
-- 状态：单题 model.patch 产出进行中（NodeBB post-cache 任务）；详见 cloud-ops-log.md 操作记录
+- 终 run 结果：**agent 完整工作 65 轮工具调用对话**（阅读代码→编辑 NodeBB post-cache→跑测试），死于 32k 上下文溢出（输入 32769 > 32768），**未到达提交步骤、无 patch**——死因是 base 模型效率（65 轮未收敛），非链路问题；恰是 W2/W3 SWE 专家训练要治的
+- 结论：**链路打通（题目→沙箱→agent→工具调用→代码修改全通），任务未解决，记 0 分**
 - harness：mini-swe-agent 2.4.6（SWE-bench 官方轻量 agent，备选方案，未用 Modal/locked 协议——本地 Docker 沙箱）
 
 ## 关键工程结论（影响 W2-W4，详见 cloud-ops-log.md）
