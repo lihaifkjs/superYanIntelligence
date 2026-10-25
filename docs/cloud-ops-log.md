@@ -50,6 +50,23 @@
 11. **vLLM 安装 #2** — `pip install vllm==0.32.0`（阿里云源，依赖链 torch2.13+cu13 ~3GB，总耗时约 2.5h 含降速）。结果：✅ vllm 0.32.0 + torch 2.13.0+cu130，import 正常；训练栈 import 验证 OK（torch 2.13 下兼容）。**注意**：`vllm --version` 报 device 错误是无卡模式假象。
 12. **HLE baseline 脚本上传** — `/root/hle_baseline.py`（打 vLLM OpenAI 端点 + 规则判分）。✅ 就位待跑
 
+### 2026-10-25（上午，无卡模式）
+
+13. **833机 Docker 可行性测试**（`ssh -p 56630 root@connect.westc.seetacloud.com`，凭据已录入 credentials.md）— 目的：验证 AutoDL 容器内能否跑 Docker（Phase 5 CPU 机候选）。结果：❌ **不可行，勿再试**。
+    - 容器 capabilities 缺 `CAP_SYS_ADMIN` / `CAP_NET_ADMIN` / `CAP_SYS_RESOURCE`，`unshare -Urn` 与 `-Ur` 均 Operation not permitted（user namespace 被禁）
+    - dockerd `--bridge=none --iptables=false --storage-driver=vfs` 可起 daemon，但 **vfs 注册层报 `unshare: operation not permitted`**，拉取镜像无法落盘
+    - overlay2 在 xfs 数据盘上 `failed to mount overlay: operation not permitted`
+    - 结论：**AutoDL（至少西北B区该机）容器内 Docker 全路线被封死**，rootless/podman 同样无 userns 不可用。Phase 5 Docker 机需改道：本机 Docker Desktop 或外部 VPS
+    - 附带资产：docker.io 29.1.3 已装在该机（无害残留）；docker.io 官方仓库被墙，docker.m.daocloud.io 镜像站可通
+    - **后续：该机已于 2026-10-25 由用户删除**（Docker 走不通 + 改用本机 Docker Desktop），凭据已从 credentials.md 移除
+
+### 2026-10-25（下午，GPU 模式，W1 推进）
+
+14. **vLLM 反复假死根因定位** — 现象：READY 后处理某些请求时 EngineCore 致命崩溃（`FileNotFoundError: 'ninja'`），API 层变僵尸（/v1/models 通、chat/completions 空响应）。原因：**机器没装 ninja**，torch 内核编译在新 batch shape 触发时找不到它。处置：`pip install ninja`（1.13.2），重启后验证。⚠️ 镜像里默认无 ninja，**重装环境/换机必装**，写进环境检查。
+15. **W1 下午进展** — HLE 200 题 baseline 出分：**0.5%（n=200，95% 死于不收束不交出 Answer）**，结果本地 `outputs/base-eval/hle_pred_{10,200}.json`；Terminal-Bench 打通（hello-world PASS，10 题子集跑分中）；ASI-Bench 打通（opencode→vLLM→本地打分，0 分=base 工具调用弱）；SWE-bench Pro v2 攻坚中。
+16. **工具调用格式结论** — Qwen3.6-35B base 原生工具格式是 **Qwen XML 风格**（`<function=名><parameter=参数>`），vLLM 需 `--tool-call-parser qwen3_xml`（hermes 解析不出）；探针验证可结构化。W2 训练数据格式须对齐。
+17. **隧道运维教训** — Windows 上 SO_REUSEADDR 允许双绑：隧道自动重连会产生「僵尸监听+新监听」并存，一半连接空响应；排障先 `netstat | grep 8000` 确认单实例。隧道脚本已加 SSH keepalive。
+
 ### 当前状态（2026-10-24 晚，已关机待命）
 
 - ✅ 已完成：下载→加载→生成→训练冒烟→vLLM 环境→HLE 数据+脚本

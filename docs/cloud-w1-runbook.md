@@ -132,6 +132,8 @@ HLE 已通；**Terminal-Bench / ASI-Bench / SWE-bench 需要 Docker**，本 GPU 
 7. **HLE 数据集 HF gated 403** → 用 ModelScope 镜像 `cais/hle`（已在云机）
 8. **67GB 权重挤 80G 卡**：KV cache 紧张，上下文别超 16K，并发 ≤4
 9. **GPU 闲时切无卡模式**（¥0.59→¥0.1/时 级差），但切换前确认无进程在用 GPU
+10. **vLLM 假死先验尸再重启**：`/v1/models` 通但 chat 空响应 = EngineCore 已崩。已遇根因：机器缺 `ninja`，torch 编译新 batch shape 时致命（`pip install ninja` 根治）。重启前 `cp vllm.log vllm.log.bak` 保留现场
+11. **Qwen3.6 工具调用格式 = Qwen XML 风格**，vLLM 必须 `--tool-call-parser qwen3_xml`（hermes/qwen3_json 解析不出 base 模型的输出）
 
 ## 4. W1 出口对照
 
