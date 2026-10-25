@@ -15,6 +15,7 @@
 - [`docs/cloud-w1-runbook.md`](docs/cloud-w1-runbook.md)：W1 云机操作 Runbook（交接独立云 agent）——输入清单、做什么/不做什么、分 Phase 命令与验收、坑点速查、W1 出口对照，配 scripts/cloud/w1_*.sh。
 - [`docs/cloud-w2-runbook.md`](docs/cloud-w2-runbook.md)：W2 云机操作 Runbook——第 0 步蒸馏格式验证、35B 自蒸馏×4 + HLE 专家端到端的分 Phase 命令与验收、W2 特有风险坑点，配 scripts/cloud/w2_pipeline.sh（SCALE=smoke/full）。
 - [`docs/cloud-ops-log.md`](docs/cloud-ops-log.md)：云机操作台账——003 机已执行操作的时间线记录（含是否需重做标记）、重启失效清单、追加模板，防止跨 agent 重复劳动。
+- [`docs/hf-token-blocked.md`](docs/hf-token-blocked.md)：HF token 受阻记录（2026-10-25 决策）——真站被 GFW+VPN 客户端镜像劫持双重封锁的全路径排查、真伪判别方法、走 hf-mirror/ModelScope 的决策与 token 恢复选项。
 
 ## 任务通知（必须照做）
 
