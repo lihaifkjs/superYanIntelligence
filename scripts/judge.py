@@ -60,6 +60,10 @@ def normalize_answer(s: str) -> str:
     # \frac{a}{b} -> a/b（先展开分数，再清理其余 latex 命令）
     for _ in range(3):  # 至多三层嵌套
         s = re.sub(r"\\[dt]?frac\{([^{}]+)\}\{([^{}]+)\}", r"(\1)/(\2)", s)
+    # frac 展开产生的纯数字括号对折叠：-(1)/(2) 与 -1/2 同义
+    s = re.sub(r"\((-?[\d.]+)\)/\((-?[\d.]+)\)", r"\1/\2", s)
+    # 一元正号归一：+infty/+x 与 infty/x 同义（[2,+infty) vs [2, infty)）
+    s = re.sub(r"\+\s*(?=[a-zA-Z(\\])", "", s)
     s = re.sub(r"\\(text|mathrm|mathbf|operatorname)\{([^{}]*)\}", r"\2", s)
     s = s.replace("\\left", "").replace("\\right", "")
     s = s.replace("\\times", "*").replace("\\cdot", "*").replace("\\div", "/")
